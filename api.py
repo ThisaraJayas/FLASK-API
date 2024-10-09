@@ -39,8 +39,38 @@ class Users(Resource):
         db.session.commit()
         users = UserModel.query.all()
         return users, 201
+class User(Resource):
+    @marshal_with(userFields)
+    def get(self, id):
+        user = UserModel.query.filter_by(id=id).first()
+        if not user:
+            abort(404, "User Not Found")
+        return user
+    
+    @marshal_with(userFields)
+    def patch(self, id):
+        args = user_args.parse_args()
+        user = UserModel.query.filter_by(id=id).first()
+        if not user:
+            abort(404, "User Not Found")
+        user.name = args["name"]
+        user.email = args["email"]
+        db.session.commit()
+        return user
+    
+    @marshal_with(userFields)
+    def delete(self, id):
+        user = UserModel.query.filter_by(id=id).first()
+        if not user:
+            abort(404, "User Not Found")
+        db.session.delete(user)
+        db.session.commit()
+        users = UserModel.query.all()
+        return user , 204
+    
     
 api.add_resource(Users, '/api/users/')
+api.add_resource(User, '/api/users/<int:id>')
 
 @app.route('/')
 def home():
